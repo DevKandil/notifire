@@ -1,0 +1,41 @@
+{
+  "name": "devkandil/notifire",
+  "description": "A Laravel package for sending Firebase Cloud Messaging (FCM) notifications",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Abdelrazek Kandil",
+      "email": "devkandil@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "laravel/framework": "^10.0|^11.0|^12.0",
+    "google/apiclient": "^2.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0|^9.0",
+    "phpunit/phpunit": "^10.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "DevKandil\\NotiFire\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "DevKandil\\NotiFire\\Tests\\" : "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "DevKandil\\NotiFire\\FcmServiceProvider"
+      ],
+      "aliases": {
+        "Fcm": "DevKandil\\NotiFire\\Facades\\Fcm"
+      }
+    }
+  }
+}
