@@ -136,10 +136,10 @@ class FcmService implements FcmServiceInterface
     /**
      * Set the action to perform when notification is clicked
      *
-     * @param string $clickAction The click action URL or identifier
+     * @param ?string $clickAction The click action URL or identifier
      * @return static
      */
-    public function withClickAction(string $clickAction): static
+    public function withClickAction(?string $clickAction): static
     {
         $this->clickAction = $clickAction;
 
@@ -149,10 +149,10 @@ class FcmService implements FcmServiceInterface
     /**
      * Set the image URL to display in the notification
      *
-     * @param string $image The image URL
+     * @param ?string $image The image URL
      * @return static
      */
-    public function withImage(string $image): static
+    public function withImage(?string $image): static
     {
         $this->image = $image;
 
@@ -162,10 +162,10 @@ class FcmService implements FcmServiceInterface
     /**
      * Set the icon to display with the notification
      *
-     * @param string $icon The icon identifier or URL
+     * @param ?string $icon The icon identifier or URL
      * @return static
      */
-    public function withIcon(string $icon): static
+    public function withIcon(?string $icon): static
     {
         $this->icon = $icon;
 
@@ -175,10 +175,10 @@ class FcmService implements FcmServiceInterface
     /**
      * Set the color to use for the notification
      *
-     * @param string $color The color in hexadecimal format (e.g., #RRGGBB)
+     * @param ?string $color The color in hexadecimal format (e.g., #RRGGBB)
      * @return static
      */
-    public function withColor(string $color): static
+    public function withColor(?string $color): static
     {
         $this->color = $color;
 
@@ -188,10 +188,10 @@ class FcmService implements FcmServiceInterface
     /**
      * Set the sound to play when the notification is received
      *
-     * @param string $sound The sound identifier
+     * @param ?string $sound The sound identifier
      * @return static
      */
-    public function withSound(string $sound): static
+    public function withSound(?string $sound): static
     {
         $this->sound = $sound;
 

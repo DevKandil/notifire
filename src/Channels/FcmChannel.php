@@ -50,12 +50,12 @@ class FcmChannel
                 $this->fcmService
                     ->withTitle($message->title)
                     ->withBody($message->body)
-                    ->withAdditionalData($message->data ?? [])
-                    ->withPriority($message->priority ?? null)
-                    ->withSound($message->sound ?? null)
-                    ->withImage($message->image ?? null)
-                    ->withIcon($message->icon ?? null)
-                    ->withClickAction($message->clickAction ?? null)
+                    ->withAdditionalData($message->data)
+                    ->withPriority($message->priority)
+                    ->withSound($message->sound)
+                    ->withImage($message->image)
+                    ->withIcon($message->icon)
+                    ->withClickAction($message->clickAction)
                     ->sendNotification($fcmToken);
             }
         } catch (\Exception $e) {
