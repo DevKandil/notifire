@@ -94,4 +94,12 @@ interface FcmServiceInterface
      * @return self
      */
     public function fromRaw(array $message): self;
+
+    /**
+     * Send a notification to one or multiple topics.
+     *
+     * @param string|array $topics Single topic (string) or multiple topics (array)
+     * @return bool
+     */
+    public function sendToTopics(string|array $topics): bool;
 }

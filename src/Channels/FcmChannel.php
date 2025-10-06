@@ -47,7 +47,7 @@ class FcmChannel
             if (is_array($message)) {
                 $this->fcmService->fromRaw($message)->send();
             } else {
-                $this->fcmService
+                $service = $this->fcmService
                     ->withTitle($message->title)
                     ->withBody($message->body)
                     ->withAdditionalData($message->data)
@@ -55,8 +55,14 @@ class FcmChannel
                     ->withSound($message->sound)
                     ->withImage($message->image)
                     ->withIcon($message->icon)
-                    ->withClickAction($message->clickAction)
-                    ->sendNotification($fcmToken);
+                    ->withClickAction($message->clickAction);
+
+                // Send to topics if specified, otherwise send to FCM token
+                if (!empty($message->topics)) {
+                    $service->sendToTopics($message->topics);
+                } else {
+                    $service->sendNotification($fcmToken);
+                }
             }
         } catch (\Exception $e) {
             Log::error('Failed to send FCM notification through channel', [

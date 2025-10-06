@@ -466,7 +466,7 @@ class FcmService implements FcmServiceInterface
     {
         try {
             $response = $this->callApi($this->fromRaw, $this->getGoogleAccessToken());
-            
+
             if (isset($response['name'])) {
                 Log::info('Raw FCM message sent successfully', [
                     'message_id' => $response['name']
@@ -491,6 +491,116 @@ class FcmService implements FcmServiceInterface
                 'trace' => $e->getTraceAsString()
             ]);
             throw $e;
+        }
+    }
+
+    /**
+     * Send FCM notification to one or multiple topics
+     *
+     * @param string|array $topics Single topic (string) or multiple topics (array)
+     * @return bool Whether the notification was sent successfully
+     * @throws Exception For unexpected errors
+     */
+    public function sendToTopics(string|array $topics): bool
+    {
+        try {
+            if (empty($topics)) {
+                Log::warning('Empty topics provided');
+                return false;
+            }
+
+            $accessToken = $this->getGoogleAccessToken();
+
+            // Build the message payload
+            $fields = [
+                'message' => [
+                    'notification' => [
+                        'title' => $this->title,
+                        'body' => $this->body,
+                    ],
+                    'android' => [
+                        'priority' => $this->priority->value,
+                        'notification' => [
+                            'icon' => $this->icon,
+                            'color' => $this->color,
+                            'image' => $this->image,
+                            'sound' => $this->sound,
+                        ]
+                    ],
+                    'apns' => [
+                        'payload' => [
+                            'aps' => [
+                                'content-available' => 1,
+                                'mutable-content' => 1,
+                                'sound' => $this->sound ?? 'default'
+                            ]
+                        ],
+                        'fcm_options' => [
+                            'image' => $this->image
+                        ]
+                    ],
+                ],
+            ];
+
+            // Handle topic or condition based on input type
+            if (is_string($topics)) {
+                // Single topic
+                $fields['message']['topic'] = $topics;
+            } else {
+                // Multiple topics - use condition with OR operator
+                $conditions = array_map(fn($topic) => "'{$topic}' in topics", $topics);
+                $fields['message']['condition'] = implode(' || ', $conditions);
+            }
+
+            // Add click_action to the appropriate location
+            if ($this->clickAction) {
+                $fields['message']['android']['notification'] = [
+                    'click_action' => $this->clickAction
+                ];
+                // For iOS, we need to add category for click_action
+                $fields['message']['apns']['payload']['aps']['category'] = $this->clickAction;
+            }
+
+            if ($this->additionalData) {
+                $fields['message']['data'] = $this->additionalData;
+            }
+
+            try {
+                $response = $this->callApi($fields, $accessToken);
+
+                if (isset($response['name'])) {
+                    Log::info('FCM notification sent to topics successfully', [
+                        'topics' => is_string($topics) ? $topics : implode(', ', $topics),
+                        'message_id' => $response['name']
+                    ]);
+                    return true;
+                } else {
+                    Log::error('Failed to send FCM notification to topics', [
+                        'topics' => is_string($topics) ? $topics : implode(', ', $topics),
+                        'error' => $response['error'] ?? 'Unknown error'
+                    ]);
+                    return false;
+                }
+            } catch (Exception $e) {
+                Log::error('FCM notification to topics failed', [
+                    'topics' => is_string($topics) ? $topics : implode(', ', $topics),
+                    'error' => $e->getMessage()
+                ]);
+                return false;
+            }
+        } catch (FcmRequestException $e) {
+            Log::error('FCM notification to topics failed', [
+                'error' => $e->getMessage(),
+                'response_data' => $e->getResponseData(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return false;
+        } catch (Exception $e) {
+            Log::error('FCM notification to topics failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return false;
         }
     }
 }

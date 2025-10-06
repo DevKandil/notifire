@@ -158,16 +158,107 @@ class FcmServiceTest extends TestCase
         ];
 
         $service = $this->fcmService->fromRaw($rawMessage);
-        
+
         // Verify fromRaw returns the service instance
         $this->assertInstanceOf(FcmService::class, $service);
-        
+
         // Verify send method works with the raw message
         $response = $service->send();
         $this->assertIsArray($response);
         $this->assertArrayHasKey('name', $response);
     }
-    
+
+    #[Test]
+    public function it_sends_notification_to_single_topic_successfully()
+    {
+        // Mock Google_Client
+        $googleClient = Mockery::mock(Google_Client::class);
+        $googleClient->shouldReceive('setAuthConfig')->once();
+        $googleClient->shouldReceive('addScope')->once();
+        $googleClient->shouldReceive('refreshTokenWithAssertion')->once();
+        $googleClient->shouldReceive('getAccessToken')
+            ->once()
+            ->andReturn(['access_token' => 'test-access-token']);
+
+        $this->app->instance(Google_Client::class, $googleClient);
+
+        // Mock successful API response
+        $this->mockSuccessfulApiCall();
+
+        $result = $this->fcmService
+            ->withTitle('Topic Notification')
+            ->withBody('This is a topic notification')
+            ->sendToTopics('news');
+
+        $this->assertTrue($result);
+    }
+
+    #[Test]
+    public function it_sends_notification_to_multiple_topics_successfully()
+    {
+        // Mock Google_Client
+        $googleClient = Mockery::mock(Google_Client::class);
+        $googleClient->shouldReceive('setAuthConfig')->once();
+        $googleClient->shouldReceive('addScope')->once();
+        $googleClient->shouldReceive('refreshTokenWithAssertion')->once();
+        $googleClient->shouldReceive('getAccessToken')
+            ->once()
+            ->andReturn(['access_token' => 'test-access-token']);
+
+        $this->app->instance(Google_Client::class, $googleClient);
+
+        // Mock successful API response
+        $this->mockSuccessfulApiCall();
+
+        $topics = ['news', 'updates'];
+        $result = $this->fcmService
+            ->withTitle('Multiple Topics')
+            ->withBody('This goes to multiple topics')
+            ->sendToTopics($topics);
+
+        $this->assertTrue($result);
+    }
+
+    #[Test]
+    public function it_fails_to_send_notification_with_empty_topics()
+    {
+        Log::shouldReceive('warning')
+            ->once()
+            ->with('Empty topics provided');
+
+        $result = $this->fcmService->sendToTopics('');
+        $this->assertFalse($result);
+    }
+
+    #[Test]
+    public function it_handles_topic_api_error()
+    {
+        // Mock Google_Client
+        $googleClient = Mockery::mock(Google_Client::class);
+        $googleClient->shouldReceive('setAuthConfig')->once();
+        $googleClient->shouldReceive('addScope')->once();
+        $googleClient->shouldReceive('refreshTokenWithAssertion')->once();
+        $googleClient->shouldReceive('getAccessToken')
+            ->once()
+            ->andReturn(['access_token' => 'test-access-token']);
+
+        $this->app->instance(Google_Client::class, $googleClient);
+
+        // Mock failed API response
+        $this->mockFailedApiCall();
+
+        Log::shouldReceive('error')
+            ->once()
+            ->with('Failed to send FCM notification to topics', Mockery::any());
+
+        $result = $this->fcmService
+            ->withTitle('Test Title')
+            ->withBody('Test Body')
+            ->sendToTopics('news');
+
+        $this->assertFalse($result);
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();
