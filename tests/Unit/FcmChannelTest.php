@@ -112,12 +112,84 @@ class FcmChannelTest extends TestCase
                 ]
             ])
             ->andReturnSelf();
-            
+
         $this->fcmService->shouldReceive('send')
             ->once()
             ->andReturn(json_decode(json_encode(['name' => 'test-message-id']), true));
 
         $this->channel->send($this->notifiable, $rawNotification);
+    }
+
+    #[Test]
+    public function it_sends_notification_to_single_topic()
+    {
+        $topicNotification = new class extends Notification {
+            public function toFcm($notifiable)
+            {
+                return FcmMessage::create('Topic News', 'Breaking news!')
+                    ->toTopics('news');
+            }
+        };
+
+        $this->fcmService->shouldReceive('withTitle')
+            ->once()
+            ->with('Topic News')
+            ->andReturnSelf();
+
+        $this->fcmService->shouldReceive('withBody')
+            ->once()
+            ->with('Breaking news!')
+            ->andReturnSelf();
+
+        $this->fcmService->shouldReceive('withAdditionalData')->andReturnSelf();
+        $this->fcmService->shouldReceive('withPriority')->andReturnSelf();
+        $this->fcmService->shouldReceive('withSound')->andReturnSelf();
+        $this->fcmService->shouldReceive('withImage')->andReturnSelf();
+        $this->fcmService->shouldReceive('withIcon')->andReturnSelf();
+        $this->fcmService->shouldReceive('withClickAction')->andReturnSelf();
+
+        $this->fcmService->shouldReceive('sendToTopics')
+            ->once()
+            ->with('news')
+            ->andReturn(true);
+
+        $this->channel->send($this->notifiable, $topicNotification);
+    }
+
+    #[Test]
+    public function it_sends_notification_to_multiple_topics()
+    {
+        $topicNotification = new class extends Notification {
+            public function toFcm($notifiable)
+            {
+                return FcmMessage::create('Multi Topic', 'Update for all')
+                    ->toTopics(['news', 'updates']);
+            }
+        };
+
+        $this->fcmService->shouldReceive('withTitle')
+            ->once()
+            ->with('Multi Topic')
+            ->andReturnSelf();
+
+        $this->fcmService->shouldReceive('withBody')
+            ->once()
+            ->with('Update for all')
+            ->andReturnSelf();
+
+        $this->fcmService->shouldReceive('withAdditionalData')->andReturnSelf();
+        $this->fcmService->shouldReceive('withPriority')->andReturnSelf();
+        $this->fcmService->shouldReceive('withSound')->andReturnSelf();
+        $this->fcmService->shouldReceive('withImage')->andReturnSelf();
+        $this->fcmService->shouldReceive('withIcon')->andReturnSelf();
+        $this->fcmService->shouldReceive('withClickAction')->andReturnSelf();
+
+        $this->fcmService->shouldReceive('sendToTopics')
+            ->once()
+            ->with(['news', 'updates'])
+            ->andReturn(true);
+
+        $this->channel->send($this->notifiable, $topicNotification);
     }
 
     protected function tearDown(): void

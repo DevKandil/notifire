@@ -16,6 +16,7 @@ Because your app deserves to annoy users **in real-time** — respectfully, of c
 - Automatic logging of notification delivery status
 - Database migration for storing FCM tokens
 - Configurable default settings
+- Send notification to single or multiple topics
 
 ## Coming Soon
 
@@ -113,6 +114,17 @@ $success = Fcm::withTitle('Hello')
 if ($success) {
     // Notification sent successfully
 }
+
+// Send to a single topic
+$success = Fcm::withTitle('News Update')
+    ->withBody('Breaking news just dropped!')
+    ->sendToTopics('news');
+
+// Send to multiple topics
+$topics = ['users', 'updates'];
+$success = Fcm::withTitle('Hello')
+    ->withBody('This is a test notification')
+    ->sendToTopics($topics);
 ```
 
 ### Direct Usage
@@ -137,6 +149,17 @@ $fcm->withTitle('Hello')
     ->withPriority(MessagePriority::HIGH)
     ->withAdditionalData(['key' => 'value'])
     ->sendNotification($fcmToken);
+
+// Send to a single topic
+$fcm->withTitle('News Update')
+    ->withBody('Breaking news just dropped!')
+    ->sendToTopics('news');
+
+// Send to multiple topics
+$topics = ['users', 'updates'];
+$fcm->withTitle('Hello')
+    ->withBody('This is a test notification')
+    ->sendToTopics($topics);
 ```
 
 ### Updating FCM Token
@@ -277,6 +300,43 @@ class User extends Model
 $user->notify(new NewMessage($message));
 ```
 
+#### Sending to Topics with Laravel Notifications
+
+To send notifications to topics instead of individual users, use the `toTopics()` method on `FcmMessage`:
+
+```php
+use DevKandil\NotiFire\FcmMessage;
+use DevKandil\NotiFire\Enums\MessagePriority;
+
+public function toFcm($notifiable)
+{
+    // Send to a single topic
+    return FcmMessage::create('Breaking News', 'This is breaking news!')
+        ->toTopics('news')
+        ->priority(MessagePriority::HIGH)
+        ->image('https://example.com/news.jpg');
+}
+```
+
+Or for multiple topics:
+
+```php
+public function toFcm($notifiable)
+{
+    // Send to users subscribed to either 'news' OR 'updates' topics
+    return FcmMessage::create('Important Update', 'This affects multiple groups')
+        ->toTopics(['news', 'updates'])
+        ->data(['action' => 'update_required']);
+}
+```
+
+Then trigger the notification:
+
+```php
+// Since topics don't require a user, you can use any notifiable or a dummy model
+Notification::route('fcm', null)->notify(new TopicNotification());
+```
+
 ### Raw FCM Messages
 
 For complete control over the FCM message payload, you can use the `fromRaw` method. This method allows you to send a custom FCM message with your own payload structure:
@@ -312,6 +372,34 @@ $response = $fcm->fromRaw([
 if (isset($response['name'])) {
     // Notification sent successfully with message ID: $response['name']
 }
+
+// Send to a single topic using raw payload
+$response = $fcm->fromRaw([
+    'message' => [
+        'topic' => 'news',
+        'notification' => [
+            'title' => 'Breaking News',
+            'body' => 'This is breaking news!',
+        ],
+        'android' => [
+            'priority' => 'high',
+        ],
+    ],
+])->send();
+
+// Send to multiple topics using condition
+$response = $fcm->fromRaw([
+    'message' => [
+        'condition' => "'news' in topics || 'updates' in topics",
+        'notification' => [
+            'title' => 'Important Update',
+            'body' => 'This affects multiple groups',
+        ],
+        'data' => [
+            'action' => 'update_required',
+        ],
+    ],
+])->send();
 ```
 
 This method is useful when you need to customize the FCM message beyond what the fluent interface provides, or when you're migrating from an existing FCM implementation.

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \DevKandil\NotiFire\FcmService fromArray(array $fromArray)
  * @method static \DevKandil\NotiFire\FcmService fromRaw(array $fromRaw)
  * @method static void sendNotification(array|string $tokens)
+ * @method static bool sendToTopics(array|string $topics)
  * @method static array send()
  */
 class Fcm extends Facade

@@ -15,6 +15,7 @@ class FcmMessage
     public ?string $sound = null;
     public ?array $data = [];
     public MessagePriority $priority;
+    public string|array|null $topics = null;
 
     public function __construct(string $title, string $body)
     {
@@ -73,6 +74,12 @@ class FcmMessage
     public function highPriority(): static
     {
         $this->priority = MessagePriority::HIGH;
+        return $this;
+    }
+
+    public function toTopics(string|array $topics): static
+    {
+        $this->topics = $topics;
         return $this;
     }
 }

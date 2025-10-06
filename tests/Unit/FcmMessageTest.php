@@ -105,4 +105,35 @@ class FcmMessageTest extends TestCase
         $this->assertEquals(MessagePriority::HIGH, $message->priority);
         $this->assertEquals(['key' => 'value'], $message->data);
     }
+
+    #[Test]
+    public function it_sets_single_topic()
+    {
+        $topic = 'news';
+        $this->message->toTopics($topic);
+
+        $this->assertEquals($topic, $this->message->topics);
+    }
+
+    #[Test]
+    public function it_sets_multiple_topics()
+    {
+        $topics = ['news', 'updates'];
+        $this->message->toTopics($topics);
+
+        $this->assertEquals($topics, $this->message->topics);
+    }
+
+    #[Test]
+    public function it_builds_message_with_topic()
+    {
+        $message = FcmMessage::create('Topic News', 'Breaking news!')
+            ->toTopics('news')
+            ->priority(MessagePriority::HIGH);
+
+        $this->assertEquals('Topic News', $message->title);
+        $this->assertEquals('Breaking news!', $message->body);
+        $this->assertEquals('news', $message->topics);
+        $this->assertEquals(MessagePriority::HIGH, $message->priority);
+    }
 }
