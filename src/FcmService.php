@@ -330,6 +330,14 @@ class FcmService implements FcmServiceInterface
                     ];
                     // For iOS, we need to add category for click_action
                     $fields['message']['apns']['payload']['aps']['category'] = $this->clickAction;
+
+                    //for webpush we need to add the sub page to the notification if a URL is given
+                    $url = parse_url($this->clickAction);
+                    if(is_array($url) && !empty($url['path'])) {
+                        $fields['message']['webpush']['fcm_options']['link'] = $url['path'];
+                    }else{
+                        $fields['message']['webpush']['fcm_options']['link'] = $this->clickAction;
+                    }
                 }
 
                 if ($this->additionalData) {
