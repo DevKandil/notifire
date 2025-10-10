@@ -136,12 +136,12 @@ class FcmService implements FcmServiceInterface
     /**
      * Set the action to perform when notification is clicked
      *
-     * @param ?string $clickAction The click action URL or identifier
+     * @param ?string $action The click action URL or identifier
      * @return static
      */
-    public function withClickAction(?string $clickAction): static
+    public function withClickAction(?string $action): static
     {
-        $this->clickAction = $clickAction;
+        $this->clickAction = $action;
 
         return $this;
     }
@@ -214,12 +214,12 @@ class FcmService implements FcmServiceInterface
     /**
      * Set additional data to send with the notification
      *
-     * @param array $additionalData Key-value pairs of additional data
+     * @param array $data Key-value pairs of additional data
      * @return static
      */
-    public function withAdditionalData(array $additionalData): static
+    public function withAdditionalData(array $data): static
     {
-        $this->additionalData = collect($additionalData)->mapWithKeys(fn ($value, $key) => [(string) $key => (string) $value])->toArray();
+        $this->additionalData = collect($data)->mapWithKeys(fn ($value, $key) => [(string) $key => (string) $value])->toArray();
 
         return $this;
     }
@@ -304,7 +304,7 @@ class FcmService implements FcmServiceInterface
                                 'icon' => $this->icon,
                                 'color' => $this->color,
                                 'image' => $this->image,
-                                'sound' => $this->sound,
+                                'sound' => $this->sound ?? 'default',
                             ]
                         ],
                         'apns' => [
@@ -319,21 +319,36 @@ class FcmService implements FcmServiceInterface
                                 'image' => $this->image
                             ]
                         ],
+                        'webpush' => [
+                            'notification' => [
+                                'title' => $this->title,
+                                'body' => $this->body,
+                                'icon' => $this->icon,
+                                'image' => $this->image,
+                                'sound' => $this->sound ?? 'default',
+                            ],
+                            'fcm_options' => []
+                        ],
                         'token' => $singleToken
                     ],
                 ];
-                
+
                 // Add click_action to the appropriate location
                 if ($this->clickAction) {
-                    $fields['message']['android']['notification'] = [
-                        'click_action' => $this->clickAction
-                    ];
+                    $fields['message']['android']['notification']['click_action'] = $this->clickAction;
                     // For iOS, we need to add category for click_action
                     $fields['message']['apns']['payload']['aps']['category'] = $this->clickAction;
+
+                    // For WebPush, parse URL and extract path for fcm_options['link']
+                    $parsedUrl = parse_url($this->clickAction);
+                    $webpushLink = $parsedUrl['path'] ?? $this->clickAction;
+                    $fields['message']['webpush']['fcm_options']['link'] = $webpushLink;
                 }
 
                 if ($this->additionalData) {
                     $fields['message']['data'] = $this->additionalData;
+                    // Merge additionalData into webpush data field as well
+                    $fields['message']['webpush']['data'] = $this->additionalData;
                 }
 
                 try {
@@ -524,7 +539,7 @@ class FcmService implements FcmServiceInterface
                             'icon' => $this->icon,
                             'color' => $this->color,
                             'image' => $this->image,
-                            'sound' => $this->sound,
+                            'sound' => $this->sound ?? 'default',
                         ]
                     ],
                     'apns' => [
@@ -538,6 +553,16 @@ class FcmService implements FcmServiceInterface
                         'fcm_options' => [
                             'image' => $this->image
                         ]
+                    ],
+                    'webpush' => [
+                        'notification' => [
+                            'title' => $this->title,
+                            'body' => $this->body,
+                            'icon' => $this->icon,
+                            'image' => $this->image,
+                            'sound' => $this->sound ?? 'default',
+                        ],
+                        'fcm_options' => []
                     ],
                 ],
             ];
@@ -554,15 +579,20 @@ class FcmService implements FcmServiceInterface
 
             // Add click_action to the appropriate location
             if ($this->clickAction) {
-                $fields['message']['android']['notification'] = [
-                    'click_action' => $this->clickAction
-                ];
+                $fields['message']['android']['notification']['click_action'] = $this->clickAction;
                 // For iOS, we need to add category for click_action
                 $fields['message']['apns']['payload']['aps']['category'] = $this->clickAction;
+
+                // For WebPush, parse URL and extract path for fcm_options['link']
+                $parsedUrl = parse_url($this->clickAction);
+                $webpushLink = $parsedUrl['path'] ?? $this->clickAction;
+                $fields['message']['webpush']['fcm_options']['link'] = $webpushLink;
             }
 
             if ($this->additionalData) {
                 $fields['message']['data'] = $this->additionalData;
+                // Merge additionalData into webpush data field as well
+                $fields['message']['webpush']['data'] = $this->additionalData;
             }
 
             try {

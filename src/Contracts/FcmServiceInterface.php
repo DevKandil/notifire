@@ -26,10 +26,10 @@ interface FcmServiceInterface
     /**
      * Set the notification image.
      *
-     * @param string $imageUrl
+     * @param string $image
      * @return self
      */
-    public function withImage(string $imageUrl): self;
+    public function withImage(string $image): self;
 
     /**
      * Set the notification sound.
