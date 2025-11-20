@@ -327,7 +327,6 @@ class FcmService implements FcmServiceInterface
                                 'image' => $this->image,
                                 'sound' => $this->sound ?? 'default',
                             ],
-                            'fcm_options' => []
                         ],
                         'token' => $singleToken
                     ],
@@ -342,7 +341,10 @@ class FcmService implements FcmServiceInterface
                     // For WebPush, parse URL and extract path for fcm_options['link']
                     $parsedUrl = parse_url($this->clickAction);
                     $webpushLink = $parsedUrl['path'] ?? $this->clickAction;
-                    $fields['message']['webpush']['fcm_options']['link'] = $webpushLink;
+                    // Only add fcm_options if we actually have a link
+                    $fields['message']['webpush']['fcm_options'] = [
+                        'link' => $webpushLink
+                    ];
                 }
 
                 if ($this->additionalData) {
@@ -562,7 +564,6 @@ class FcmService implements FcmServiceInterface
                             'image' => $this->image,
                             'sound' => $this->sound ?? 'default',
                         ],
-                        'fcm_options' => []
                     ],
                 ],
             ];
@@ -586,7 +587,9 @@ class FcmService implements FcmServiceInterface
                 // For WebPush, parse URL and extract path for fcm_options['link']
                 $parsedUrl = parse_url($this->clickAction);
                 $webpushLink = $parsedUrl['path'] ?? $this->clickAction;
-                $fields['message']['webpush']['fcm_options']['link'] = $webpushLink;
+                $fields['message']['webpush']['fcm_options'] = [
+                    'link' => $webpushLink
+                ];
             }
 
             if ($this->additionalData) {
