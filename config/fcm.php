@@ -60,5 +60,16 @@ return [
     | as users won't be able to modify test files in the vendor directory.
     |
     */
-    'test_token' => env('FCM_TEST_TOKEN', 'fMYt3W8XSJqTMEIvYR1234:APA91bEH_3kDyFMuXO5awEcbkwqg9LDyZ8QK-9qAw3qsF-4NvUq98Y5X9iJKX2JkpRGLEN_2PXXXPmLTCWtQWYPmL3RKJki_6GVQgHGpXzD8YG9z1EUlZ6LWmjOUCxGrYD8QVnqH1234')
+    'test_token' => env('FCM_TEST_TOKEN', 'fMYt3W8XSJqTMEIvYR1234:APA91bEH_3kDyFMuXO5awEcbkwqg9LDyZ8QK-9qAw3qsF-4NvUq98Y5X9iJKX2JkpRGLEN_2PXXXPmLTCWtQWYPmL3RKJki_6GVQgHGpXzD8YG9z1EUlZ6LWmjOUCxGrYD8QVnqH1234'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Logging Enabled
+    |--------------------------------------------------------------------------
+    |
+    | Controls whether the FCM package logs messages. Set this to true to
+    | enable all package logging.
+    |
+    */
+    'logging_enabled' => env('FCM_LOGGING_ENABLED', false),
 ];

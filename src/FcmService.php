@@ -275,7 +275,7 @@ class FcmService implements FcmServiceInterface
     {
         try {
             if (empty($token)) {
-                Log::warning('Empty FCM token provided');
+                $this->log('warning', 'Empty FCM token provided');
                 return false;
             }
             
@@ -357,19 +357,19 @@ class FcmService implements FcmServiceInterface
                     $response = $this->callApi($fields, $accessToken);
                     
                     if (isset($response['name'])) {
-                        Log::info('FCM notification sent successfully', [
+                        $this->log('info', 'FCM notification sent successfully', [
                             'token' => $singleToken,
                             'message_id' => $response['name']
                         ]);
                     } else {
-                        Log::error('Failed to send FCM notification', [
+                        $this->log('error', 'Failed to send FCM notification', [
                             'token' => $singleToken,
                             'error' => $response['error'] ?? 'Unknown error'
                         ]);
                         $success = false;
                     }
                 } catch (Exception $e) {
-                    Log::error('FCM notification failed', [
+                    $this->log('error', 'FCM notification failed', [
                         'token' => $singleToken,
                         'error' => $e->getMessage()
                     ]);
@@ -379,14 +379,14 @@ class FcmService implements FcmServiceInterface
             
             return $success;
         } catch (FcmRequestException $e) {
-            Log::error('FCM notification failed', [
+            $this->log('error', 'FCM notification failed', [
                 'error' => $e->getMessage(),
                 'response_data' => $e->getResponseData(),
                 'trace' => $e->getTraceAsString()
             ]);
             return false;
         } catch (Exception $e) {
-            Log::error('FCM notification failed', [
+            $this->log('error', 'FCM notification failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -464,7 +464,7 @@ class FcmService implements FcmServiceInterface
 
             return $token['access_token'];
         } catch (Exception $e) {
-            Log::error('Failed to get Google access token', [
+            $this->log('error', 'Failed to get Google access token', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -485,25 +485,25 @@ class FcmService implements FcmServiceInterface
             $response = $this->callApi($this->fromRaw, $this->getGoogleAccessToken());
 
             if (isset($response['name'])) {
-                Log::info('Raw FCM message sent successfully', [
+                $this->log('info', 'Raw FCM message sent successfully', [
                     'message_id' => $response['name']
                 ]);
             } else {
-                Log::error('Failed to send raw FCM message', [
+                $this->log('error', 'Failed to send raw FCM message', [
                     'error' => $response['error'] ?? 'Unknown error'
                 ]);
             }
 
             return $response;
         } catch (FcmRequestException $e) {
-            Log::error('Failed to send raw FCM message', [
+            $this->log('error', 'Failed to send raw FCM message', [
                 'error' => $e->getMessage(),
                 'response_data' => $e->getResponseData(),
                 'trace' => $e->getTraceAsString()
             ]);
             throw $e;
         } catch (Exception $e) {
-            Log::error('Failed to send raw FCM message', [
+            $this->log('error', 'Failed to send raw FCM message', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -522,7 +522,7 @@ class FcmService implements FcmServiceInterface
     {
         try {
             if (empty($topics)) {
-                Log::warning('Empty topics provided');
+                $this->log('warning', 'Empty topics provided');
                 return false;
             }
 
@@ -602,38 +602,53 @@ class FcmService implements FcmServiceInterface
                 $response = $this->callApi($fields, $accessToken);
 
                 if (isset($response['name'])) {
-                    Log::info('FCM notification sent to topics successfully', [
+                    $this->log('info', 'FCM notification sent to topics successfully', [
                         'topics' => is_string($topics) ? $topics : implode(', ', $topics),
                         'message_id' => $response['name']
                     ]);
                     return true;
                 } else {
-                    Log::error('Failed to send FCM notification to topics', [
+                    $this->log('error', 'Failed to send FCM notification to topics', [
                         'topics' => is_string($topics) ? $topics : implode(', ', $topics),
                         'error' => $response['error'] ?? 'Unknown error'
                     ]);
                     return false;
                 }
             } catch (Exception $e) {
-                Log::error('FCM notification to topics failed', [
+                $this->log('error', 'FCM notification to topics failed', [
                     'topics' => is_string($topics) ? $topics : implode(', ', $topics),
                     'error' => $e->getMessage()
                 ]);
                 return false;
             }
         } catch (FcmRequestException $e) {
-            Log::error('FCM notification to topics failed', [
+            $this->log('error', 'FCM notification to topics failed', [
                 'error' => $e->getMessage(),
                 'response_data' => $e->getResponseData(),
                 'trace' => $e->getTraceAsString()
             ]);
             return false;
         } catch (Exception $e) {
-            Log::error('FCM notification to topics failed', [
+            $this->log('error', 'FCM notification to topics failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             return false;
+        }
+    }
+
+    /**
+     * Log a message if logging is enabled
+     *
+     * @param string $level The log level (info, error, warning, etc.)
+     * @param string $message The log message
+     * @param array $context Additional context data
+     * @return void
+     */
+    private function log(string $level, string $message, array $context = []): void
+    {
+        if (config('fcm.logging_enabled', true)) {
+            Log::log($level, $message, $context);
         }
     }
 }
